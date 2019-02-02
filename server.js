@@ -11,10 +11,11 @@ var MongoStore = require('connect-mongo')(session);
 var passport = require('passport');
 
 var secret = require('./config/secret');
-
 var User = require('./models/user.js');
-
+var Category = require('./models/category.js');
 var app = express();
+
+
 
 
 /** Connection string to connect with DB */
@@ -39,6 +40,14 @@ app.use(session({
 	store:new MongoStore({url:secret.database,autoReconnect:true})
 }));
 
+app.use((req,res,next) => {
+	Category.find({},(err,categories) => {
+		if(err) return next(err);
+		res.locals.categories = categories;
+		next();
+	});
+});
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -50,11 +59,13 @@ app.set('view engine','ejs');
 
 var mainRoutes = require('./routes/main');
 var userRoutes = require('./routes/user');
+var adminRoutes = require('./routes/admin');
+// var apiRoutes = require('../routes/api');
 
 app.use(mainRoutes);
 app.use(userRoutes);
-
-
+app.use(adminRoutes);
+// app.use(apiRoutes);
 
 
  app.listen(secret.port,(err) => {
